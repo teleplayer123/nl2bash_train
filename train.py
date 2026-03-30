@@ -6,8 +6,7 @@ from peft import LoraConfig, get_peft_model
 
 # --- Load the pre-trained model and tokenizer ---
 
-model_id = "HuggingFaceTB/SmolLM2-135M-Instruct"
-
+model_id = "HuggingFaceTB/SmolLM2-135M"
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 model = AutoModelForCausalLM.from_pretrained(model_id)
 
@@ -73,6 +72,7 @@ for i in range(3):
 # --- Tokenize the dataset ---
 
 def tokenize(example):
+    tokenizer.pad_token = tokenizer.eos_token
     tokens = tokenizer(
         example["text"],
         truncation=True,
@@ -91,19 +91,14 @@ tokenized_ds = ds.map(tokenize, batched=True)
 
 # --- Fine-tune the model using LoRA ---
 
-# For small models, it's often best to focus on the attention layers, as they have a significant impact on performance and are more likely to benefit from fine-tuning. The MLP layers can be less effective for small models and may lead to overfitting, especially with a limited dataset.
-# target_modules=[
-#     "q_proj", "k_proj", "v_proj", "o_proj",
-#     "gate_proj", "up_proj", "down_proj"   # MLP layers
-# ]
-
 lora_config = LoraConfig(
     r=16,                     # Higher rank helps models with small capacity actually learn the task
     lora_alpha=32,            # keep ~2xr for stable scaling, which prevents updates from being too aggressive
     target_modules=[
         "q_proj", "v_proj",   # attention (most important)
         "k_proj",             # helps stability on small models
-        "o_proj"              # improves output quality
+        "o_proj",              # improves output quality
+        #"gate_proj", "up_proj", "down_proj"  # MLP layers can help, but be careful of overfitting
     ],
     lora_dropout=0.1,         # higher than usual (prevents overfit)
     bias="none",
