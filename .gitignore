@@ -1,3 +1,5 @@
 assets
 .DS_Store
 .venv
+smollm2-bash
+final-model

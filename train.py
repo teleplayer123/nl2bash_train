@@ -60,9 +60,6 @@ def is_valid(example):
 
 ds = ds.filter(is_valid)
 
-# Deduplicate examples
-ds = ds.drop_duplicates("text")
-
 # Limit length
 def short_enough(example):
     return len(example["text"]) < 200
