@@ -6,7 +6,8 @@ from peft import LoraConfig, get_peft_model
 
 # --- Load the pre-trained model and tokenizer ---
 
-model_id = "HuggingFaceTB/SmolLM2-135M"
+# model_id = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+model_id = "HuggingFaceTB/SmolLM2-135M-Instruct"
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 model = AutoModelForCausalLM.from_pretrained(model_id)
 
@@ -130,6 +131,12 @@ trainer.train()
 
 model = model.merge_and_unload()
 model.save_pretrained("./final-model")
+
+# Save original tokenizer in attempt to fix potential tokenization issues with llama.cpp (may need to modify tokenizer settings or use a custom tokenizer for best results)
+tokenizer = AutoTokenizer.from_pretrained(
+    "HuggingFaceTB/SmolLM2-135M-Instruct",
+    use_fast=True
+)
 tokenizer.save_pretrained("./final-model")
 
 # Use llama.cpp to convert to GGUF and quantize
