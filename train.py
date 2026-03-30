@@ -7,7 +7,7 @@ from peft import LoraConfig, get_peft_model
 # --- Load the pre-trained model and tokenizer ---
 
 # model_id = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-model_id = "HuggingFaceTB/SmolLM2-135M-Instruct"
+model_id = "HuggingFaceTB/SmolLM2-135M"
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 model = AutoModelForCausalLM.from_pretrained(model_id)
 
@@ -99,7 +99,7 @@ lora_config = LoraConfig(
         "q_proj", "v_proj",   # attention (most important)
         "k_proj",             # helps stability on small models
         "o_proj",              # improves output quality
-        #"gate_proj", "up_proj", "down_proj"  # MLP layers can help, but be careful of overfitting
+        "gate_proj", "up_proj", "down_proj"  # MLP layers can help, but be careful of overfitting
     ],
     lora_dropout=0.1,         # higher than usual (prevents overfit)
     bias="none",
@@ -134,7 +134,7 @@ model.save_pretrained("./final-model")
 
 # Save original tokenizer in attempt to fix potential tokenization issues with llama.cpp (may need to modify tokenizer settings or use a custom tokenizer for best results)
 tokenizer = AutoTokenizer.from_pretrained(
-    "HuggingFaceTB/SmolLM2-135M-Instruct",
+    "HuggingFaceTB/SmolLM2-135M",
     use_fast=True
 )
 tokenizer.save_pretrained("./final-model")
