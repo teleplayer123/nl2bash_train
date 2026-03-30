@@ -140,5 +140,6 @@ tokenizer = AutoTokenizer.from_pretrained(
 tokenizer.save_pretrained("./final-model")
 
 # Use llama.cpp to convert to GGUF and quantize
+# Note: In tokenizer_config.json change "extra_special_tokens" to "special_tokens" to avoid issues with llama.cpp conversion.
 # python3 convert_hf_to_gguf.py ./final-model --outfile model.gguf
 # ./quantize model.gguf model_Q3_K_M.gguf Q3_K_M
