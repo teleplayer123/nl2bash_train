@@ -1,5 +1,6 @@
 from datasets import load_from_disk
 import os
+import re
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
 from peft import LoraConfig, get_peft_model
 
@@ -14,31 +15,82 @@ model = AutoModelForCausalLM.from_pretrained(model_id)
 
 train_save_path = os.path.join(os.getcwd(), "assets", "bash_command_data_6K")
 dataset = load_from_disk(train_save_path)
-print(dataset["train"][0])
+print(dataset)
 
 # --- Format the dataset for training ---
 
+def clean_text(text):
+    text = text.strip()
+    text = re.sub(r"\s+", " ", text)  # collapse whitespace
+    return text
+
+# consider structured output
+def format_structured(example):
+    prompt = clean_text(example["prompt"])
+    completion = clean_text(example["completion"])
+
+    return {
+        "text": f"""Convert the request into a JSON object.
+
+Request: {prompt}
+Output: {{"command": "{completion}"}}"""
+    }
+
 def format_example(example):
+    prompt = clean_text(example["prompt"])
+    completion = clean_text(example["completion"])
+
     return {
         "text": f"""Convert the request to a Linux command.
 
-Request: {example['input']}
-Command: {example['output']}"""
+Request: {prompt}
+Command: <cmd>{completion}</cmd>"""
     }
 
-dataset = dataset["train"].map(format_example)
+ds = dataset["train"].map(format_example)
+
+# Remove bad rows
+def is_valid(example):
+    cmd = example["text"]
+    return (
+        "<cmd>" in cmd and
+        "</cmd>" in cmd and
+        len(cmd) < 300  # avoid weird long outputs
+    )
+
+ds = ds.filter(is_valid)
+
+# Deduplicate examples
+ds = ds.drop_duplicates("text")
+
+# Limit length
+def short_enough(example):
+    return len(example["text"]) < 200
+
+ds = ds.filter(short_enough)
+
+for i in range(3):
+    print(ds[i]["text"])
+    print("-----")
 
 # --- Tokenize the dataset ---
 
 def tokenize(example):
-    return tokenizer(
+    tokens = tokenizer(
         example["text"],
         truncation=True,
-        padding="max_length",
-        max_length=256
+        max_length=160,
+        padding="max_length"
     )
+    tokens["labels"] = tokens["input_ids"].copy()
+    return tokens
 
-tokenized = dataset.map(tokenize, batched=True)
+tokenized_ds = ds.map(tokenize, batched=True)
+
+# Optional validation split
+# split = tokenized_ds.train_test_split(test_size=0.05)
+# train_ds = split["train"]
+# val_ds = split["test"]
 
 # --- Fine-tune the model using LoRA ---
 
@@ -77,7 +129,7 @@ training_args = TrainingArguments(
 trainer = Trainer(
     model=model,
     args=training_args,
-    train_dataset=tokenized
+    train_dataset=tokenized_ds
 )
 
 trainer.train()
