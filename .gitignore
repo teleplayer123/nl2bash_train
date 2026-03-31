@@ -1,5 +1,5 @@
 assets
 .DS_Store
 .venv
-smollm2-bash
+tinyllama-bash
 final-model
