@@ -3,3 +3,4 @@ assets
 .venv
 tinyllama-bash
 final-model
+run_claude.sh
