@@ -73,7 +73,6 @@ for i in range(3):
 # --- Tokenize the dataset ---
 
 def tokenize(example):
-    tokenizer.pad_token = tokenizer.eos_token
     tokens = tokenizer(
         example["text"],
         truncation=True,
@@ -99,7 +98,7 @@ lora_config = LoraConfig(
         "q_proj", "v_proj",   # attention (most important)
         "k_proj",             # helps stability on small models
         "o_proj",              # improves output quality
-        #"gate_proj", "up_proj", "down_proj"  # MLP layers can help, but be careful of overfitting
+        "gate_proj", "up_proj", "down_proj"  # MLP layers can help, but be careful of overfitting
     ],
     lora_dropout=0.1,         # higher than usual (prevents overfit)
     bias="none",
@@ -112,11 +111,12 @@ model = get_peft_model(model, lora_config)
 training_args = TrainingArguments(
     output_dir="./tinyllama-bash",
     per_device_train_batch_size=16,
+    auto_find_batch_size=True,
     num_train_epochs=3,
     logging_steps=10,
     save_steps=100,
     learning_rate=1e-4, 
-    fp16=True
+    bf16=True 
 )
 
 trainer = Trainer(
@@ -133,10 +133,10 @@ model = model.merge_and_unload()
 model.save_pretrained("./final-model")
 
 # Save original tokenizer in attempt to fix potential tokenization issues with llama.cpp (may need to modify tokenizer settings or use a custom tokenizer for best results)
-# tokenizer = AutoTokenizer.from_pretrained(
-#     model_id,
-#     use_fast=True
-# )
+tokenizer = AutoTokenizer.from_pretrained(
+    model_id,
+    use_fast=True
+)
 tokenizer.save_pretrained("./final-model")
 
 # Use llama.cpp to convert to GGUF and quantize
