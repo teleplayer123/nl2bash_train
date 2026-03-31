@@ -47,18 +47,18 @@ Request: {prompt}
 Command: <cmd>{completion}</cmd>"""
     }
 
-ds = dataset["train"].map(format_example)
+ds = dataset["train"].map(format_structured)
 
 # Remove bad rows
-def is_valid(example):
-    cmd = example["text"]
-    return (
-        "<cmd>" in cmd and
-        "</cmd>" in cmd and
-        len(cmd) < 300  # avoid weird long outputs
-    )
+# def is_valid(example):
+#     cmd = example["text"]
+#     return (
+#         "<cmd>" in cmd and
+#         "</cmd>" in cmd and
+#         len(cmd) < 300  # avoid weird long outputs
+#     )
 
-ds = ds.filter(is_valid)
+# ds = ds.filter(is_valid)
 
 # Limit length
 def short_enough(example):
@@ -99,7 +99,7 @@ lora_config = LoraConfig(
         "q_proj", "v_proj",   # attention (most important)
         "k_proj",             # helps stability on small models
         "o_proj",              # improves output quality
-        "gate_proj", "up_proj", "down_proj"  # MLP layers can help, but be careful of overfitting
+        #"gate_proj", "up_proj", "down_proj"  # MLP layers can help, but be careful of overfitting
     ],
     lora_dropout=0.1,         # higher than usual (prevents overfit)
     bias="none",
