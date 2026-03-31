@@ -111,7 +111,7 @@ model = get_peft_model(model, lora_config)
 # --- Train ---
 training_args = TrainingArguments(
     output_dir="./tinyllama-bash",
-    per_device_train_batch_size=8,
+    per_device_train_batch_size=16,
     num_train_epochs=3,
     logging_steps=10,
     save_steps=100,
