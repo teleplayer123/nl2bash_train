@@ -24,8 +24,8 @@ def clean_text(text):
     text = re.sub(r"\s+", " ", text)  # collapse whitespace
     return text
 
-# consider structured output
-def format_structured(example):
+# format structured output
+def format_json(example):
     prompt = clean_text(example["prompt"])
     completion = clean_text(example["completion"])
 
@@ -36,7 +36,7 @@ Request: {prompt}
 Output: {{"command": "{completion}"}}"""
     }
 
-def format_example(example):
+def format_ml(example):
     prompt = clean_text(example["prompt"])
     completion = clean_text(example["completion"])
 
@@ -47,18 +47,18 @@ Request: {prompt}
 Command: <cmd>{completion}</cmd>"""
     }
 
-ds = dataset["train"].map(format_structured)
+ds = dataset["train"].map(format_ml)
 
 # Remove bad rows
-# def is_valid(example):
-#     cmd = example["text"]
-#     return (
-#         "<cmd>" in cmd and
-#         "</cmd>" in cmd and
-#         len(cmd) < 300  # avoid weird long outputs
-#     )
+def is_valid(example):
+    cmd = example["text"]
+    return (
+        "<cmd>" in cmd and
+        "</cmd>" in cmd and
+        len(cmd) < 300  # avoid weird long outputs
+    )
 
-# ds = ds.filter(is_valid)
+ds = ds.filter(is_valid)
 
 # Limit length
 def short_enough(example):
