@@ -5,9 +5,8 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments,
 from peft import LoraConfig, get_peft_model
 
 # --- Load the pre-trained model and tokenizer ---
-
-model_id = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-#model_id = "HuggingFaceTB/SmolLM2-135M"
+#model_id = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+model_id = "HuggingFaceTB/SmolLM2-135M"
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 model = AutoModelForCausalLM.from_pretrained(model_id)
 
@@ -109,7 +108,7 @@ model = get_peft_model(model, lora_config)
 
 # --- Train ---
 training_args = TrainingArguments(
-    output_dir="./tinyllama-bash",
+    output_dir="./smollm2-bash",
     per_device_train_batch_size=16,
     auto_find_batch_size=True,
     num_train_epochs=3,
