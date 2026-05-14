@@ -5,3 +5,5 @@ tinyllama-bash
 final-model
 opencode.json
 uv.lock
+vulns.json
+pupscan.log
