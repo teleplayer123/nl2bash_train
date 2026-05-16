@@ -61,7 +61,7 @@ dependencies = [
     "transformers==5.4.0",
     "typer==0.24.1",
     "typing-extensions==4.15.0",
-    "urllib3==2.6.3",
+    "urllib3==2.7.0",
     "xxhash==3.6.0",
     "yarl==1.23.0",
 ]
